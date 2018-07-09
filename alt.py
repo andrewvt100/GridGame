@@ -13,6 +13,10 @@ import pdb
 import time
 import heapq
 
+
+import numpy
+from heapq import *
+
 ###### PYGAME IMPORTS ######
 
 import pygame
@@ -92,13 +96,13 @@ class Grid():
 		print("END GRID PRINT")
 
 class Unit():
-    
-    def __init__(self, gridPosition, type):
-        self.gridPosition = gridPosition
-        self.pathNode = None
-        # self.gridMoveBegin = None
-        self.gridMoveEnd = None
-        self.type = type
+	
+	def __init__(self, gridPosition, type):
+		self.gridPosition = gridPosition
+		self.pathNode = None
+		# self.gridMoveBegin = None
+		self.gridMoveEnd = None
+		self.type = type
 
 ###### HELPER FUNCTIONS ######
 
@@ -140,6 +144,75 @@ def didHitUnit(gridPosition):
 		if unit.gridPosition == gridPosition:
 			return unit
 	return None
+
+def heuristic(a, b):
+	return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+
+def astar(grid, startPos, goalPos):
+
+	start = (startPos.x, startPos.y)
+	goal = (goalPos.x, goalPos.y)
+
+	neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]	
+
+	close_set = set()
+	came_from = {}
+	gscore = {start:0}
+	fscore = {start:heuristic(start, goal)}
+	oheap = []
+
+	heappush(oheap, (fscore[start], start))
+	
+	while oheap:
+
+		current = heappop(oheap)[1]
+
+		grid_square.fill(blue)
+		screen.blit(grid_square, 
+			pygame.Rect(
+				current[0] * grid_square_size, 
+				current[1] * grid_square_size, 
+				grid_square_size, 
+				grid_square_size
+			)
+		)
+
+		pygame.event.pump()
+		pygame.display.update()
+
+		if current == goal:
+			data = []
+			while current in came_from:
+				data.append(current)
+				current = came_from[current]
+			return data
+
+		close_set.add(current)
+		for i, j in neighbors:
+			neighbor = current[0] + i, current[1] + j            
+			tentative_g_score = gscore[current] + heuristic(current, neighbor)
+			if 0 <= neighbor[0] < grid.numcols:
+				if 0 <= neighbor[1] < grid.numrows:                
+					if grid.queryPosition(GridPosition(neighbor[0], neighbor[1])) == True:
+						continue
+				else:
+					# array bound y walls
+					continue
+			else:
+				# array bound x walls
+				continue
+				
+			if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
+				continue
+				
+			if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
+				came_from[neighbor] = current
+				gscore[neighbor] = tentative_g_score
+				fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+				heappush(oheap, (fscore[neighbor], neighbor))
+				
+	return False
+
 
 def AStarSearch(startPos, endPos, grid):
 
@@ -308,7 +381,9 @@ while 1:
 
 					selected_unit.gridMoveEnd = grid_pos
 
-					selected_unit.pathNode = AStarSearch(selected_unit.gridMoveEnd, selected_unit.gridPosition, grid)
+					# selected_unit.pathNode = AStarSearch(selected_unit.gridMoveEnd, selected_unit.gridPosition, grid)
+
+					print(astar(grid, selected_unit.gridPosition, selected_unit.gridMoveEnd))
 
 					print("Moving unit to {} {}".format(
 						grid_pos.x, grid_pos.y))

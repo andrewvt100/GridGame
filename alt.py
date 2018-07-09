@@ -153,7 +153,8 @@ def astar(grid, startPos, goalPos):
 	start = (startPos.x, startPos.y)
 	goal = (goalPos.x, goalPos.y)
 
-	neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]	
+	neighbors = [(0,1),(0,-1),(1,0),(-1,0)]	
+	# neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]	
 
 	close_set = set()
 	came_from = {}
@@ -162,8 +163,12 @@ def astar(grid, startPos, goalPos):
 	oheap = []
 
 	heappush(oheap, (fscore[start], start))
+
+	counter = 0
 	
 	while oheap:
+
+		print(len(oheap))
 
 		current = heappop(oheap)[1]
 
@@ -210,6 +215,8 @@ def astar(grid, startPos, goalPos):
 				gscore[neighbor] = tentative_g_score
 				fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
 				heappush(oheap, (fscore[neighbor], neighbor))
+				
+		counter+=1
 				
 	return False
 

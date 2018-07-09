@@ -42,6 +42,10 @@ class AStarNode():
 		else:
 			return False
 
+	def __str__(self):
+		return "x:{} y:{} g:{} h:{} f:{}".format(self.gridPos.x, self.gridPos.y, self.g, self.h, self.f)
+
+
 class GridPosition():
 
 	def __init__(self, x, y):
@@ -59,6 +63,9 @@ class GridPosition():
 		else:
 			return False
 
+	def __str__(self):
+		return "x:{} y:{}".format(self.x, self.y)
+
 class Grid():
 
 	def __init__(self, x, y):
@@ -72,14 +79,14 @@ class Grid():
 			self.grid.append(col)
 
 	def queryPosition(self, gridPosition):
-		return self.grid[gridPosition.x][gridPosition.y]
+		return self.grid[int(gridPosition.x)][int(gridPosition.y)]
 
 	def setPosition(self, gridPosition, value):
 
 		if (value == True):
-			self.grid[gridPosition.x][gridPosition.y] = True
+			self.grid[int(gridPosition.x)][int(gridPosition.y)] = True
 		elif (value == False):
-			self.grid[gridPosition.x][gridPosition.y] = False
+			self.grid[int(gridPosition.x)][int(gridPosition.y)] = False
 		else:
 			print("Grid.setPosition() error: bad argument")
 
@@ -108,10 +115,13 @@ def magnitude(vector):
 
 def euclideanDistance(gridPosA, gridPosB):
 
-	return math.sqrt( 
-		(gridPosB.x - gridPosA.x)*(gridPosB.x - gridPosA.x) + 
-		(gridPosB.y - gridPosA.y)*(gridPosB.y - gridPosA.y)
-	)
+	# return math.sqrt( 
+	# 	(gridPosB.x - gridPosA.x)*(gridPosB.x - gridPosA.x) + 
+	# 	(gridPosB.y - gridPosA.y)*(gridPosB.y - gridPosA.y)
+	# )
+
+	return (gridPosB.x - gridPosA.x)*(gridPosB.x - gridPosA.x) + (gridPosB.y - gridPosA.y)*(gridPosB.y - gridPosA.y)
+
 
 def normalize(vector):
    
@@ -144,7 +154,10 @@ def didHitUnit(gridPosition):
 def AStarSearch(startPos, endPos, grid):
 
 	heap = []
-	heapq.heappush(heap, AStarNode(startPos, 0, euclideanDistance(startPos, endPos), None))
+	firstNode = AStarNode(startPos, 0, euclideanDistance(startPos, endPos), None)
+	heapq.heappush(heap, firstNode)
+
+	print(firstNode)
 	
 	# open_list =[AStarNode(startPos, 0, euclideanDistance(startPos, endPos), None)]
 	closed_list = []
@@ -152,14 +165,23 @@ def AStarSearch(startPos, endPos, grid):
 	done = False
 	final_node = None
 
+	counter = 0
+
 	while len(heap) != 0 and not done:
 		# best_node = open_list[0]
 		# for node in open_list:
 		# 	if node.f < best_node.f:
 		# 		best_node = node
 		# open_list.remove(best_node)
+		print(counter)
+		# print(len(heap))
+
+		for node in heap:
+			print(node)
 
 		best_node = heapq.heappop(heap)
+
+		print("selected {}".format(best_node))
 
 		grid_square.fill(blue)
 		screen.blit(grid_square, 
@@ -191,19 +213,19 @@ def AStarSearch(startPos, endPos, grid):
 				if (grid.queryPosition(gridPos) == False):
 					newNode = AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node)
 					isNodeValid = True
-					# for index, open_node in enumerate(open_list):
-					# 	if open_node.gridPos == gridPos:
-					# 		isNodeValid = False
-					# 		if open_node.f > newNode.f:
-					# 			open_list[index] = AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node)
+					for index, open_node in enumerate(heap):
+						if open_node.gridPos == gridPos:
+							# if open_node.g >= newNode.g:
+							isNodeValid = False
 					for index, closed_node in enumerate(closed_list):
 						if closed_node.gridPos == gridPos:
+							# if closed_node.g >= newNode.g:
 							isNodeValid = False
-							if closed_node.f > newNode.f:
-								closed_list[index] = AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node)
 					if (isNodeValid):
 						heapq.heappush(heap, AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node))
 		closed_list.append(best_node)
+
+		counter += 1
 
 	return final_node
 
@@ -309,6 +331,7 @@ while 1:
 					selected_unit.gridMoveEnd = grid_pos
 
 					selected_unit.pathNode = AStarSearch(selected_unit.gridMoveEnd, selected_unit.gridPosition, grid)
+					selected_unit.pathNode = None
 
 					print("Moving unit to {} {}".format(
 						grid_pos.x, grid_pos.y))

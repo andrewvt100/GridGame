@@ -102,9 +102,7 @@ class Unit():
     
     def __init__(self, gridPosition, type):
         self.gridPosition = gridPosition
-        self.pathNode = None
-        # self.gridMoveBegin = None
-        self.gridMoveEnd = None
+        self.pathStack = None
         self.type = type
 
 ###### HELPER FUNCTIONS ######
@@ -156,32 +154,15 @@ def AStarSearch(startPos, endPos, grid):
 	heap = []
 	firstNode = AStarNode(startPos, 0, euclideanDistance(startPos, endPos), None)
 	heapq.heappush(heap, firstNode)
-
-	print(firstNode)
 	
-	# open_list =[AStarNode(startPos, 0, euclideanDistance(startPos, endPos), None)]
 	closed_list = []
 
 	done = False
-	final_node = None
-
-	counter = 0
+	moveStack = []
 
 	while len(heap) != 0 and not done:
-		# best_node = open_list[0]
-		# for node in open_list:
-		# 	if node.f < best_node.f:
-		# 		best_node = node
-		# open_list.remove(best_node)
-		print(counter)
-		# print(len(heap))
-
-		for node in heap:
-			print(node)
 
 		best_node = heapq.heappop(heap)
-
-		print("selected {}".format(best_node))
 
 		grid_square.fill(blue)
 		screen.blit(grid_square, 
@@ -209,25 +190,30 @@ def AStarSearch(startPos, endPos, grid):
 				if (gridPos == endPos):
 						done = True
 						final_node = AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node)
+						next_node = final_node					
+						while(next_node.parent != None):
+							moveStack.append(next_node)
+							next_node = next_node.parent
+						moveStack.append(next_node)
 						break
 				if (grid.queryPosition(gridPos) == False):
 					newNode = AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node)
 					isNodeValid = True
 					for index, open_node in enumerate(heap):
 						if open_node.gridPos == gridPos:
+							# The line below should be uncommented, but testing an alternate version of the algorithm
 							# if open_node.g >= newNode.g:
 							isNodeValid = False
 					for index, closed_node in enumerate(closed_list):
 						if closed_node.gridPos == gridPos:
+							# The line below should be uncommented, but testing an alternate version of the algorithm
 							# if closed_node.g >= newNode.g:
 							isNodeValid = False
 					if (isNodeValid):
 						heapq.heappush(heap, AStarNode(gridPos, best_node.g + 1, euclideanDistance(gridPos, endPos), best_node))
 		closed_list.append(best_node)
 
-		counter += 1
-
-	return final_node
+	return moveStack
 
 ###### MAIN FUNCTION ######
 
@@ -322,32 +308,30 @@ while 1:
 		grid_pos = findGridSquareForPos(click_pos)
 
 		if (selected_unit != None):
-
 			unit = didHitUnit(grid_pos)
 			if unit == None:
-
-				if selected_unit.gridMoveEnd != grid_pos:
-
-					selected_unit.gridMoveEnd = grid_pos
-
-					selected_unit.pathNode = AStarSearch(selected_unit.gridMoveEnd, selected_unit.gridPosition, grid)
-					selected_unit.pathNode = None
-
-					print("Moving unit to {} {}".format(
-						grid_pos.x, grid_pos.y))
+				if (selected_unit.pathStack != None):
+					if len(selected_unit.pathStack) > 0: 
+						if selected_unit.pathStack[0] != grid_pos:
+							selected_unit.pathStack = AStarSearch(selected_unit.gridPosition, grid_pos, grid)
+							print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
+					else:
+						selected_unit.pathStack = AStarSearch(selected_unit.gridPosition, grid_pos, grid)
+						print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
+				else:
+					selected_unit.pathStack = AStarSearch(selected_unit.gridPosition, grid_pos, grid)
+					print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
 
 	# Perform unit movements
 
 	for unit in current_units:
-		if unit.pathNode != None:
-			clear_cells.append(unit.gridPosition)
-			newGridPos = unit.pathNode.gridPos
-			grid.setPosition(unit.gridPosition, False)
-			unit.gridPosition = newGridPos
-			grid.setPosition(unit.gridPosition, True)
-			unit.pathNode = unit.pathNode.parent
-		else:
-			unit.gridMoveEnd = None
+		if unit.pathStack != None:
+			if len(unit.pathStack) > 0:
+				clear_cells.append(unit.gridPosition)
+				newGridPos = unit.pathStack.pop().gridPos
+				grid.setPosition(unit.gridPosition, False)
+				unit.gridPosition = newGridPos
+				grid.setPosition(unit.gridPosition, True)
 
 	# Clear dirty grid squares
 
@@ -378,10 +362,6 @@ while 1:
 				grid_square_size
 			)
 		)
-
-	# grid.printUnitLocations()
-
-	# sleep(1)
 
 	pygame.display.flip()
 	clock.tick(100)

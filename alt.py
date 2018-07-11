@@ -81,9 +81,9 @@ class Grid():
 	def setPosition(self, gridPosition, value):
 
 		if (value == True):
-			self.grid[gridPosition.x][gridPosition.y] = True
+			self.grid[int(gridPosition.x)][int(gridPosition.y)] = True
 		elif (value == False):
-			self.grid[gridPosition.x][gridPosition.y] = False
+			self.grid[int(gridPosition.x)][int(gridPosition.y)] = False
 		else:
 			print("Grid.setPosition() error: bad argument")
 
@@ -168,7 +168,7 @@ def astar(grid, startPos, goalPos):
 	
 	while oheap:
 
-		print(len(oheap))
+		# print(len(oheap))
 
 		current = heappop(oheap)[1]
 
@@ -190,6 +190,7 @@ def astar(grid, startPos, goalPos):
 			while current in came_from:
 				data.append(current)
 				current = came_from[current]
+			print(counter)
 			return data
 
 		close_set.add(current)
@@ -209,15 +210,22 @@ def astar(grid, startPos, goalPos):
 				
 			if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
 				continue
+
+			addedNeighbor = False
+
+			if neighbor in [i[1]for i in oheap]:
+				addedNeighbor = True
 				
 			if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
 				came_from[neighbor] = current
 				gscore[neighbor] = tentative_g_score
 				fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
 				heappush(oheap, (fscore[neighbor], neighbor))
+				if addedNeighbor:
+					print("Added a duplicate node with a better gscore") 
 				
 		counter+=1
-				
+	
 	return False
 
 
@@ -390,7 +398,8 @@ while 1:
 
 					# selected_unit.pathNode = AStarSearch(selected_unit.gridMoveEnd, selected_unit.gridPosition, grid)
 
-					print(astar(grid, selected_unit.gridPosition, selected_unit.gridMoveEnd))
+					# print(astar(grid, selected_unit.gridPosition, selected_unit.gridMoveEnd))
+					astar(grid, selected_unit.gridPosition, selected_unit.gridMoveEnd)
 
 					print("Moving unit to {} {}".format(
 						grid_pos.x, grid_pos.y))

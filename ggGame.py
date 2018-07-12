@@ -20,7 +20,7 @@ import pygame.time
 ###### GRIDGAME IMPORTS ######
 
 import ggTools
-import ggA_star
+import ggAstar
 from ggGrid import GridPosition
 from ggGrid import Grid
 from ggUnit import Unit
@@ -135,13 +135,13 @@ while 1:
 						if selected_unit.pathStack[0] != grid_pos:
 							# print(selected_unit.pathStack[0])
 							# print(grid_pos)
-							selected_unit.pathStack = ggA_star.Search(selected_unit.gridPosition, grid_pos, grid)
+							selected_unit.pathStack = ggAstar.Search(selected_unit.gridPosition, grid_pos, grid)
 							print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
 					else:
-						selected_unit.pathStack = ggA_star.Search(selected_unit.gridPosition, grid_pos, grid)
+						selected_unit.pathStack = ggAstar.Search(selected_unit.gridPosition, grid_pos, grid)
 						print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
 				else:
-					selected_unit.pathStack = ggA_star.Search(selected_unit.gridPosition, grid_pos, grid)
+					selected_unit.pathStack = ggAstar.Search(selected_unit.gridPosition, grid_pos, grid)
 					print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
 
 	# Perform unit movements

@@ -1,5 +1,7 @@
 ###### NOTES ######
 
+# Add two-click wall drawing with line approximation algorithm (DDA) to determine line to draw
+
 # World coordinate system and grid both operate on an x, y indexing scheme
 # Grid access is col, row
 # Mouse coordinates and object positions are x, y
@@ -88,11 +90,14 @@ while row < numrows:
 		col += 1
 	row+=1
 
-pygame.display.flip()
+# pygame.display.flip()
 
 while 1:
 
 	clear_cells = []
+	update_rects = []
+
+	# Events must be cleared for every
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: sys.exit()
@@ -161,14 +166,14 @@ while 1:
 	for cell in clear_cells:
 		# print("Clearing: {} {}".format(cell.x, cell.y))
 		grid_square.fill(white)
-		screen.blit(grid_square, 
-			pygame.Rect(
+		rect = pygame.Rect(
 				cell.x * grid_square_size, 
 				cell.y * grid_square_size, 
 				grid_square_size, 
 				grid_square_size
 			)
-		)
+		update_rects.append(rect)
+		screen.blit(grid_square, rect)
 
 	# Draw all units
 
@@ -177,15 +182,15 @@ while 1:
 			grid_square.fill(red)
 		elif unit.type == "wall":
 			grid_square.fill(black)
-		screen.blit(grid_square, 
-			pygame.Rect(
+		rect = pygame.Rect(
 				unit.gridPosition.x * grid_square_size, 
 				unit.gridPosition.y * grid_square_size, 
 				grid_square_size, 
 				grid_square_size
 			)
-		)
+		update_rects.append(rect)
+		screen.blit(grid_square, rect)
 
-	pygame.display.flip()
+	pygame.display.update(update_rects)
 	# print(clock.tick(60))
-	# clock.tick(60)
+	clock.tick(100)

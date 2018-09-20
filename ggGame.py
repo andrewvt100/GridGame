@@ -23,6 +23,7 @@ import pygame.time
 
 import ggTools
 import ggAstar
+import ggDDA
 from ggGrid import GridPosition
 from ggGrid import Grid
 from ggUnit import Unit
@@ -70,6 +71,9 @@ current_units = [Unit(GridPosition(10,10), "player")]
 grid.setPosition(current_units[0].gridPosition, True)
 selected_unit = None
 
+wall_begin = None
+wall_end = None
+
 # Draw all grid squares to initial color
 
 col, row = 0, 0
@@ -92,6 +96,9 @@ while row < numrows:
 
 # pygame.display.flip()
 
+leftMouseAlreadyPressed = False
+rightMouseAlreadyPressed = False
+
 while 1:
 
 	clear_cells = []
@@ -111,9 +118,41 @@ while 1:
 		click_pos = pygame.mouse.get_pos()
 		grid_pos = grid.findGridSquareForPos(click_pos)
 
-		if keys & pygame.KMOD_SHIFT != 0:
-			current_units.append(Unit(grid_pos, "wall"))
-			grid.setPosition(grid_pos, True)
+		if keys & pygame.KMOD_LSHIFT != 0:
+
+			if wall_begin == None and wall_end == None:
+				if leftMouseAlreadyPressed == False:
+					wall_begin = grid_pos
+					print("Wall Begin: {} {}\n".format(wall_begin.x, wall_begin.y))
+			elif wall_begin != None and wall_end == None:
+				if leftMouseAlreadyPressed == False:
+					if (grid_pos != wall_begin):
+
+						wall_end = grid_pos
+
+						print("Wall Begin: {} {}".format(wall_begin.x, wall_begin.y))
+						print("Wall End: {} {}\n".format(wall_end.x, wall_end.y))
+						move_stack = ggDDA.DDA(wall_begin, wall_end)
+
+						for move in move_stack:
+							current_units.append(Unit(move, "wall"))
+							grid.setPosition(move, True)
+
+						if keys & pygame.KMOD_LCTRL != 0:
+							print("CTL pressed")
+							wall_begin = wall_end
+						else:
+							wall_begin = None
+
+						wall_end = None
+
+
+
+			else:
+				wall_begin = None
+				wall_end = None
+
+			
 		else:
 			unit = unitAtGridPosition(grid_pos)
 			if unit != None:
@@ -124,6 +163,12 @@ while 1:
 				if selected_unit != None:
 					selected_unit = None
 					print("Deselected unit")
+
+		if leftMouseAlreadyPressed == False:
+			leftMouseAlreadyPressed = True
+	else:
+		leftMouseAlreadyPressed = False
+
 
 	# Handle right mouse button
 

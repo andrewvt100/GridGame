@@ -94,7 +94,7 @@ while row < numrows:
 		col += 1
 	row+=1
 
-# pygame.display.flip()
+pygame.display.flip()
 
 leftMouseAlreadyPressed = False
 rightMouseAlreadyPressed = False
@@ -109,16 +109,21 @@ while 1:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT: sys.exit()
 
-	# Handle left mouse button 
+	# Get keypresses
 
-	keys = pygame.key.get_mods()
+	key_mods = pygame.key.get_mods()
+	key_keys = pygame.key.get_pressed()
+
+	# Handle left mouse button 
 
 	if pygame.mouse.get_pressed()[0]:
 
 		click_pos = pygame.mouse.get_pos()
 		grid_pos = grid.findGridSquareForPos(click_pos)
 
-		if keys & pygame.KMOD_LSHIFT != 0:
+		# If left shift pressed, handle wall building
+
+		if key_mods & pygame.KMOD_LSHIFT != 0:
 
 			if wall_begin == None and wall_end == None:
 				if leftMouseAlreadyPressed == False:
@@ -138,7 +143,7 @@ while 1:
 							current_units.append(Unit(move, "wall"))
 							grid.setPosition(move, True)
 
-						if keys & pygame.KMOD_LCTRL != 0:
+						if key_mods & pygame.KMOD_LCTRL != 0:
 							print("CTL pressed")
 							wall_begin = wall_end
 						else:
@@ -146,13 +151,12 @@ while 1:
 
 						wall_end = None
 
-
-
 			else:
 				wall_begin = None
 				wall_end = None
+		
+		# If left shift not pressed, select/deselect units
 
-			
 		else:
 			unit = unitAtGridPosition(grid_pos)
 			if unit != None:
@@ -193,6 +197,21 @@ while 1:
 				else:
 					selected_unit.pathStack = ggAstar.Search(selected_unit.gridPosition, grid_pos, grid)
 					print("Moving unit to {} {}".format(grid_pos.x, grid_pos.y))
+
+	# Handle backspace for wall delete
+
+	if key_keys[pygame.K_BACKSPACE] != 0:
+
+		print("backspace")
+		popcount = 0
+		for i in range(len(current_units)):
+			unit = current_units[i-popcount]
+			if unit.type == "wall":
+				clear_cells.append(unit.gridPosition)
+				grid.setPosition(unit.gridPosition, False)
+				print(unit.type)
+				current_units.pop(i-popcount)
+				popcount += 1
 
 	# Perform unit movements
 
